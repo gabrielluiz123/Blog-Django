@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import redirect
 from django.views.generic.list import ListView
 from django.views.generic.edit import UpdateView
 from posts.models import Post
@@ -16,6 +16,7 @@ class PostIndex(ListView):
 
     def get_queryset(self):
         qs = super().get_queryset()
+        qs = qs.select_related('categoria_post')
         qs = qs.order_by('id').filter(publicado_post=True)
         qs = qs.annotate(
             numero_comentario=Count(
