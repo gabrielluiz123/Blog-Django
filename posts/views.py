@@ -1,5 +1,6 @@
-from django.shortcuts import redirect
+from django.shortcuts import redirect, get_object_or_404, render
 from django.views.generic.list import ListView
+from django.views import View
 from django.views.generic.edit import UpdateView
 from posts.models import Post
 from django.db.models import Q, Count, Case, When
@@ -58,7 +59,7 @@ class PostCategoria(PostIndex):
         )
         return qs
 
-
+"""
 class PostDetalhes(UpdateView):
     template_name = 'posts/detalhes.html'
     model = Post
@@ -84,4 +85,35 @@ class PostDetalhes(UpdateView):
         comentario.save()
         messages.success(self.request, 'Comentario Adicionado com sucesso!!')
         return redirect('post_detalhes', pk=post.id)
+"""
 
+
+class PostDetalhes(View):
+    template_name = 'posts/detalhes.html'
+
+    def setup(self, request, *args, **kwargs):
+        super().setup(request, *args, **kwargs)
+        pk = self.kwargs.get('pk')
+        post = get_object_or_404(Post, pk=pk, publicado_post=True)
+        self.contexto = {
+            'post': post,
+            'comentarios': Comentario.objects.filter(post_comentario=post, publicado_comentario=True),
+            'form': FormComentario(request.POST or None),
+        }
+
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name, self.contexto)
+
+    def post(self, request, *args, **kwargs):
+        form = self.contexto['form']
+        if not form.is_valid():
+            return render(request, self.template_name, self.contexto)
+        comentario = form.save(commit=False)
+
+        if request.user.is_authenticated:
+            comentario.usuario_comentario = request.user
+        comentario.post_comentario = self.contexto['post']
+        comentario.save()
+        messages.success(self.request, 'Comentario Adicionado com sucesso!!')
+
+        return redirect('post_detalhes', pk=self.kwargs.get('pk'))
