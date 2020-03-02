@@ -58,16 +58,20 @@
 
                             <form method="POST" action="#envia_comentario">
                                 {% csrf_token %}
-                                <table class="table">
-                                    {{ form }}
-                                    <tr>
-                                        <td colspan="2">
-                                            {% include 'parciais/_messages.html' %}
-                                            <input id="envia_comentario" type="submit" class="btn btn-primary"
+                                {% for  invisiveis in form.hidden_fields%}
+                                    {{ invisiveis }}
+                                {% endfor %}
+                                {% for  visiveis in form.visible_fields%}
+                                    <p>
+                                    {{ visiveis.label_tag }} <br>
+                                    {{ visiveis }}
+                                    {{ visiveis.errors }}
+                                    </p>
+                                {% endfor %}
+                                {% include 'parciais/_messages.html' %}
+                                <input id="envia_comentario" type="submit" class="btn btn-primary"
                                                 value="Enviar">
-                                        </td>
-                                    </tr>
-                                </table>
+
                             </form>
 
 
